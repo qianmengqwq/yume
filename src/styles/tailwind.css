@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+
+@plugin "@tailwindcss/typography";
+@plugin 'tailwind-scrollbar';
+/* https://github.com/egoist/tailwindcss-icons/issues/54 */
+@plugin '@egoist/tailwindcss-icons';
+@plugin 'tailwindcss-animate';

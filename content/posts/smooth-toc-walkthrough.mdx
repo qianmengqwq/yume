@@ -1,0 +1,78 @@
+---
+title: 平滑 TOC 方案详解
+slug: smooth-toc-walkthrough
+createdAt: "2025-09-13"
+updatedAt: "2025-09-13"
+---
+
+# 平滑 TOC 方案详解
+
+本文通过一个可运行的案例总结“平滑 TOC（目录）”的核心实现思路与关键细节。
+
+## 目标与约束
+
+- 自动从文档中抽取 H1–H6 标题
+- TOC 展示分层结构，随滚动自动高亮当前可见区块
+- 点击 TOC 平滑滚动、并支持返回浏览历史
+- 保持实现简洁，尽量少的依赖和全局状态
+
+## 技术选型
+
+### 标题抽取与渲染
+
+- 使用 remark/rehype/unified 产出 mdast/hast
+- rehype-slug 统一生成稳定的 heading id
+- 在构建期由内容管线生成 tocEntry，运行期直接消费
+
+### 状态与联动
+
+- 以轻量全局 store（如 Zustand）记录 Section 列表及可见性
+- 每个 Section 绑定两个 ref：headingRef（正文真实 DOM）与 outlineItemRef（TOC 项）
+
+## 数据模型
+
+### Section 记录结构
+
+- id: string（锚点）
+- value: string（标题文本）
+- level: number（1-6）
+- headingRef: HTMLHeadingElement | null
+- outlineItemRef: HTMLLIElement | null
+- isVisible: boolean（是否出现在视口内）
+
+## 可见性判定与滚动监听
+
+- 在 scroll/resize 时计算每个 Section 的 top 与 nextSection 的 top，得到 [top, bottom) 区间
+- 若区间与 [scrollY, scrollY + innerHeight] 相交，则为可见
+- 仅当可见集合发生变化时更新状态，避免无效渲染
+
+## 激活态高亮（连续区块）
+
+- 将可见 section 的对应 TOC 项高度相加作为高亮条的 height
+- 计算第一个可见 section 之前所有 TOC 项高度和作为 top
+- 使用动画（如 framer-motion）提升平滑感
+
+### 锚点与平滑滚动
+
+- 使用 `a[href^="#"]` 的默认行为，必要时通过 `scrollIntoView({ behavior: 'smooth' })` 提升体验
+- 结合 next/router 更新 hash 以支持前进/后退
+
+## 边界与兼容
+
+### 标题层级不从 H2 开始
+
+- 计算最小层级 minLevel，对 level 做 level - minLevel 归一化缩进
+
+### 内容极短或极长
+
+- 空 TOC：直接隐藏或显示占位
+- 超长 TOC：容器滚动 + sticky 标题
+
+### 移动端
+
+- 折叠/展开 TOC
+- 适当增大点击热区
+
+## 小结
+
+一个平滑、鲁棒的 TOC 主要由“正确的标题抽取 + 稳定的可见性计算 + 平滑的动效”三部分组成。合理抽象 Section 数据模型与 store，可以让正文渲染、滚动联动与 TOC UI 解耦。

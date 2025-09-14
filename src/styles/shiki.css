@@ -22,6 +22,5 @@ code .line::before {
   margin-right: 1.5rem;
   display: inline-block;
   text-align: right;
-  /* 这颜色选的真可以，light/dark看起来都很合适 */
-  color: rgba(115,138,148,.4)
+  color: var(--shiki-code-linenumber)
 }

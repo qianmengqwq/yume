@@ -2,23 +2,18 @@
 
 import { useTheme } from 'next-themes'
 import * as React from 'react'
+import { useMounted } from '@/hooks/common/use-mounted'
 
-// 主题切换：light/dark/system
-// 使用 mingcute 图标类名，配合 tailwind 过渡动画
 export function ModeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useMounted()
 
-  // 避免 SSR 与客户端不一致闪烁
   if (!mounted) {
     return (
       <button
         aria-label="Toggle theme"
-        className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-zinc-600 dark:text-zinc-300"
+        className="inline-flex size-9 items-center justify-center rounded-md"
         disabled
       >
         <span className="i-mingcute-loading-3-line animate-spin" />
@@ -47,14 +42,11 @@ export function ModeToggle() {
       type="button"
       onClick={nextTheme}
       aria-label={`Current theme: ${active.label}. Click to switch.`}
-      className="group relative inline-flex size-9 select-none items-center justify-center overflow-hidden rounded-md border border-zinc-300 bg-white text-zinc-700 transition hover:bg-zinc-100 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+      className="group relative inline-flex size-9 select-none items-center justify-center overflow-hidden rounded-md"
     >
       <span
         className={`transition-transform duration-300 ease-out ${active.icon} text-xl`}
       />
-      <span className="pointer-events-none absolute -bottom-6 translate-y-2 opacity-0 rounded bg-zinc-800 px-2 py-0.5 text-xs text-white shadow-md transition group-hover:translate-y-0 group-hover:opacity-100 dark:bg-zinc-200 dark:text-zinc-900">
-        {active.label}
-      </span>
     </button>
   )
 }

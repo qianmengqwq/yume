@@ -1,0 +1,170 @@
+---
+title: TOC 深度对比：参考实现 vs Next.js + Velite 版本
+slug: toc-deep-dive-comparison
+createdAt: "2025-09-13"
+updatedAt: "2025-09-13"
+---
+
+# TOC 深度对比：参考实现 vs Next.js + Velite 版本
+
+本文深入比较“参考项目 smooth-toc-example”与当前“Next.js + Velite + Jotai + framer-motion”的目录（TOC）实现。
+
+- 参考项目位置：`smooth-toc-example/`
+- 当前项目关键文件：
+  - `src/components/mdx/mdx-content.tsx`
+  - `src/components/mdx/heading.tsx`
+  - `src/components/mdx/toc-view.tsx`
+  - `src/hooks/use-visible-sections.ts`
+  - `src/atoms/toc.ts`
+  - `src/app/blog/[slug]/page.tsx`
+  - `velite.config.ts`
+
+## 1. 技术栈与整体架构
+
+- 参考项目
+  - 渲染：remark/rehype/unified + rehype-slug + rehype-react
+  - 状态：Zustand（`stores/toc.ts`）
+  - 动效：framer-motion（连续高亮条）
+  - UI：kuma-ui
+  - 平台：Vite + React SPA（纯客户端）
+
+- 当前项目
+  - 渲染：Velite 在构建期产出 MDX 代码与 `tocEntry`，运行时 `MDXContent` 执行渲染
+  - 状态：Jotai（`src/atoms/toc.ts`）
+  - 动效：framer-motion（连续高亮条）
+  - UI：Tailwind（通用类），容器布局使用 CSS grid + sticky
+  - 平台：Next.js（Server + Client 边界严格）
+
+对比：
+- 参考项目在运行时解析 markdown、抽取 headings；当前项目复用 Velite 构建期产出的 `tocEntry`，减少运行时开销。
+- 状态管理从 Zustand 切换为 Jotai，语义保持一致：sections 列表、heading/outline 注册、可见性集合。
+- 由于 Next.js SSR/CSR 边界，当前项目将 MDX 渲染与 TOC 组件显式标记为 client，并小心处理 hydration。
+
+## 2. 数据来源与模型
+
+- 参考项目：`mdastExtractHeadings(mdast)` 遍历 mdast，得到 `{ value, id, level }[]`，并在 store 中扩展为 Section：`{ id, value, level, headingRef, outlineItemRef, isVisible }`。
+- 当前项目：Velite 产出 `tocEntry: { title, url, items[] }[]`；运行时扁平化为 `[{ id, title, depth }]`，再映射到 Jotai `sectionsAtom`：
+  - `TocSection = { id, title, depth, headingRef, outlineItemRef, isVisible }`
+
+差异：
+- 参考使用运行时 mdast；当前使用构建期 `tocEntry`，省去 `unist-util-visit`、`mdast-util-to-string` 等依赖。
+- 字段名不同：value→title、level→depth；两者语义一致。
+
+## 3. 标题组件与注册
+
+- 参考：rehype-react 将 h1~h6 定制为 `createRehypeHeading(level)`，在 `useEffect` 里对每个 heading 注册 `headingRef` 到 store。
+- 当前：`src/components/mdx/heading.tsx` 提供 `createHeading(level)`，由 `MDXContent` 作为 `components` 注入，挂载时注册 `headingRef` 到 Jotai。
+
+Next.js 注意点：
+- `MDXContent` 标记为 `"use client"`，否则会出现“在服务端调用 client 函数”的错误。
+- 标题组件自身是 client 组件，确保注册只发生在浏览器端。
+
+## 4. TOC 列表渲染与右侧布局
+
+- 参考：kuma-ui 组件 + 左侧竖线 + 连续高亮条；布局自由。
+- 当前：`src/app/blog/[slug]/page.tsx` 使用 grid 布局：
+  - 小屏 1 列；≥lg 时 `minmax(0,1fr) + 280px` 两列
+  - 右栏 `sticky top-24` 且 `max-h: calc(100vh - 6rem)`、`overflow-y-auto`
+  - `src/components/mdx/toc-view.tsx` 内部渲染 TOC 列表，左侧线与高亮条对齐
+
+差异：
+- UI 库不同（kuma-ui vs Tailwind），但视觉结构一致：标题、竖线、连续高亮条、分层缩进。
+
+## 5. 可见性判定与激活态
+
+- 参考：`hooks/use-visible-sections.ts` 根据每个 heading 的 `top` 与“下一个 heading 的 top”确定 [top, bottom) 区间，与视口相交则可见；只在集合变化时更新。
+- 当前：`src/hooks/use-visible-sections.ts` 复刻该算法，并：
+  - 使用 `requestAnimationFrame` 节流 scroll 事件
+  - `passive: true` 注册监听器
+  - 在 Jotai 的 `setVisibleIdsAtom` 内做等价性检查，避免无变化 set 引发渲染
+
+差异：
+- 行为一致；当前额外加入“等价性检查”与“函数稳定性”方面的优化（避免无限更新）。
+
+## 6. 连续高亮条动效
+
+- 参考：通过 `outlineItemRef` 取每个 TOC 项高度，汇总得到高亮条 `height`，并计算 `top`；framer-motion 做平滑动画。
+- 当前：`src/components/mdx/toc-view.tsx` 同步实现：
+  - 通过 `sections` 收集 `outlineItemRef` → `elMap`
+  - `visibleIds.reduce` 聚合 `height`，对前缀项累加计算 `top`
+  - `motion.div` 使用 `easeInOut` 和 0.22s 动画，初始/透明度处理避免闪烁
+
+差异：
+- 视觉参数、对齐细节略有不同（Tailwind 类 + 左侧对齐 0px）。整体交互一致。
+
+## 7. 事件与 URL 同步
+
+- 点击目录项：两者都使用 `scrollIntoView({ behavior: 'smooth' })` 平滑滚动；当前项目同时用 `history.replaceState(null, '', '#id')` 同步 hash 而不触发布局跳变。
+- 滚动监听：两者都监听 `scroll`/`resize`；当前项目在 hook 中做 rAF 节流与被动事件。
+
+## 8. Next.js 环境特有处理
+
+- 客户端边界：
+  - `mdx-content.tsx` 标注 `"use client"`；
+  - `heading.tsx`、`toc-view.tsx`、`use-visible-sections.ts` 都是 client。
+- SSR/CSR 水合：
+  - 避免在服务端创建动态组件或读取 DOM；
+  - 初始化 sections 与注册 ref 全在浏览器端进行；
+  - 避免无变化 set（Jotai 原子里做了等价性检查）。
+
+## 9. 性能与稳定性
+
+- 请求动画帧节流（rAF）+ 被动监听器：减少滚动期间的主线程压力。
+- 等价性检查（Jotai）
+  - `setVisibleIdsAtom`：仅当 `isVisible` 变化时 set
+  - `registerHeading/OutlineItem`：ref 变了才 set
+  - `setSectionsAtom`：保留旧 ref 防抖动
+- 函数稳定性
+  - OutlineItem 自注册，避免父组件每次渲染生成新回调导致依赖变化
+
+## 10. 边界场景与对策
+
+- 开头不是 H2：按最小层级归一化缩进（两边都处理了）
+- 目录很长：右栏滚动容器（sticky + overflow-y）
+- 短文/空 TOC：无 TOC 直接返回 null
+- id 冲突/非 ASCII：rehype-slug 生成稳定 id；Velite `tocEntry` 已处理
+- 移动端：默认隐藏右栏，保留正文；需要时可加折叠按钮
+- 有粘性头部：如需激活判定引入顶部偏移，可在 `use-visible-sections` 中加入 offset（当前与参考保持一致）
+
+## 11. 可配置项与自定义
+
+- 右栏宽度：当前 280px（`page.tsx` grid 定义）
+- 粘顶偏移：`sticky top-24`（≈6rem）；可按导航高度调整
+- 动画：`duration: 0.22, ease: 'easeInOut'`（`toc-view.tsx`）
+- 颜色：`bg-blue-500 dark:bg-blue-400`、文字色 `text-zinc-…` 可替换
+- 深度限制：在扁平化时过滤 `depth`（示例未限制）
+
+## 12. 代码入口与职责
+
+- `velite.config.ts`
+  - rehype-slug 与 rehype-autolink-headings 已启用
+  - schema 中 `s.toc()` 生成 `tocEntry`
+- `src/components/mdx/mdx-content.tsx`
+  - 客户端渲染 Velite 产物；注入 h1~h6 = `createHeading`
+- `src/components/mdx/heading.tsx`
+  - 运行时注册每个 heading 的 DOM ref
+- `src/atoms/toc.ts`
+  - sections 状态，注册动作与可见性写回
+- `src/hooks/use-visible-sections.ts`
+  - 监听滚动/尺寸，计算可见集合
+- `src/components/mdx/toc-view.tsx`
+  - 初始化 sections、渲染 TOC 树、注册 outlineItem、连续高亮条动效
+- `src/app/blog/[slug]/page.tsx`
+  - 两栏布局（正文 + 右侧 TOC）
+
+## 13. 可选后续改进
+
+- IntersectionObserver 方案：替代手写滚动计算，性能更高
+- 目录搜索/筛选：长目录可快速定位
+- a11y：aria-current，键盘导航，焦点同步到标题
+- 滚动偏移：为激活判定与滚动目标加入统一的 `offsetTop` 配置
+- 动态折叠低优先级标题：根据阅读深度收起
+
+## 14. 迁移总结
+
+- 运行时抽取 → 构建期 `tocEntry`：更轻量
+- Zustand → Jotai：等价迁移，API 与语义对齐
+- Vite SPA → Next.js：严格客户端边界，避免 SSR 调用 client 函数
+- 动效与视觉：沿用 framer-motion 连续高亮条，Tailwind 实现视觉一致性
+
+以上即两套实现的逐点对比与当前落地方案说明。若你希望进一步完全复刻参考项目的视觉细节（比如精确的缩进、配色或动效曲线），我可以继续微调。

@@ -1,5 +1,7 @@
 import type { UserConfig } from 'velite'
 import rehypeShiki from '@shikijs/rehype'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeSlug from 'rehype-slug'
 import { defineConfig, s } from 'velite'
 import { rehypeShikiOption } from '@/config/rehype-shiki'
 
@@ -17,11 +19,12 @@ const config: UserConfig = {
           metadata: s.metadata(),
           cover: s.image().optional(),
           code: s.mdx(),
+          tocEntry: s.toc(),
         }),
     },
   },
   mdx: {
-    rehypePlugins: [[rehypeShiki, rehypeShikiOption]],
+    rehypePlugins: [[rehypeShiki, rehypeShikiOption], rehypeSlug, rehypeAutolinkHeadings],
   },
 }
 

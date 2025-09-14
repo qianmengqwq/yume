@@ -2,6 +2,7 @@
 
 import type { PropsWithChildren } from 'react'
 import { FontProvider } from './font-provider'
+import { JotaiProvider } from './jotai-provider'
 import { ThemeProvider } from './theme-provider'
 
 export function Providers({ children }: PropsWithChildren) {
@@ -12,7 +13,9 @@ export function Providers({ children }: PropsWithChildren) {
       enableSystem
     >
       <FontProvider>
-        {children}
+        <JotaiProvider>
+          {children}
+        </JotaiProvider>
       </FontProvider>
     </ThemeProvider>
   )

@@ -1,0 +1,133 @@
+---
+title: 当前 TOC 实现总览与优化建议
+slug: toc-implementation-overview
+createdAt: "2025-09-13"
+updatedAt: "2025-09-13"
+---
+
+# 当前 TOC 实现总览与优化建议
+
+本文梳理项目内已落地的目录（TOC）方案：目标、架构、数据流、关键算法、文件职责、可配置项与可优化点，便于你审核与微调。
+
+## 目录目标
+
+- 自动从文档（MDX）生成层级目录
+- 右侧固定目录，跟随滚动平滑高亮当前可见章节（可连续覆盖多个）
+- 点击目录项平滑滚动并更新 URL hash
+- 保持 SSR 的文章内容，不强制整页切到客户端渲染
+
+## 架构总览
+
+- 内容生成：Velite 在构建期产出 `tocEntry`
+- 页面渲染：文章内容 SSR；TOC 行为在客户端联动
+- 客户端联动：Jotai 全局状态 + rAF 滚动计算 + framer-motion 连续高亮条
+- 右栏布局：CSS Grid 分栏 + sticky 容器
+
+## 核心文件与职责
+
+- `velite.config.ts`
+  - 启用 `rehype-slug`、`rehype-autolink-headings`；schema 中 `s.toc()` 生成 `post.tocEntry`
+- `src/app/blog/[slug]/page.tsx`
+  - 页面布局：左侧正文、右侧 TOC（≥lg 可见，sticky）
+- `src/components/mdx/mdx-content.tsx`
+  - 服务端渲染 Velite 产物（不再注入客户端 Heading 组件）
+- `src/components/mdx/toc-view.tsx`
+  - TOC 视图（客户端）：初始化 sections、注册 TOC 项 ref、扫描并注册正文 heading、渲染连续高亮条
+- `src/hooks/use-visible-sections.ts`
+  - 滚动/尺寸监听与可见性计算（rAF 节流 + 被动监听）
+- `src/atoms/toc.ts`
+  - 全局状态（Jotai）：sections 列表、注册动作、可见集合写入，内置等价性检查
+
+## 数据模型
+
+- 输入：Velite `tocEntry: { title: string; url: string; items: TocEntry[] }[]`
+- 扁平化：`FlatItem = { id: string; title: string; depth: number }`
+- 全局状态 `TocSection`（Jotai `sectionsAtom`）
+  - `id: string`（来自 `tocEntry.url` 的 hash 去掉 `#`）
+  - `title: string`
+  - `depth: number`（层级）
+  - `headingRef: RefObject<HTMLHeadingElement | null>`（正文标题 DOM）
+  - `outlineItemRef: RefObject<HTMLLIElement | null>`（TOC 项 DOM）
+  - `isVisible: boolean`（是否在视口范围内）
+
+## 渲染与联动流程
+
+1. 页面渲染时，`TocView` 将 `tocEntry` 扁平化，并调用 `setSectionsAtom` 初始化 `sections`（保留旧 ref）。
+2. `TocView` 在 `useEffect` 中按 `sections` 的 `id` 扫描 DOM（`document.getElementById(id)`），把正文 heading 节点注册到 `registerHeadingAtom`。
+3. `TocView` 渲染目录列表，每个 TOC 项在 `OutlineItem` 内部注册 `outlineItemRef` 到 `registerOutlineItemAtom`。
+4. `useVisibleSections` 监听 `scroll`/`resize`，用 rAF 节流，计算可见章节集合并写入 `setVisibleIdsAtom`。
+5. `TocView` 基于 `sections` 中 `isVisible` 与 TOC 项实际高度计算连续高亮条的 `height` 与 `top`，由 framer-motion 平滑过渡。
+6. 点击 TOC 项：平滑滚动 `scrollIntoView({ behavior: 'smooth' })`，并用 `history.replaceState` 更新 hash（避免跳变）。
+
+## 右侧布局与样式
+
+- 页面用 `grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px]` 分栏
+- 右栏容器：`sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto`（可滚动且固定）
+- 目录内部：左侧灰线 + 蓝色高亮条，分层缩进由 `depth - minDepth` 控制
+
+## 关键算法
+
+- 可见性判断（与参考实现一致）
+  - 对第 i 个 heading：`top = rect.top + scrollY`，`bottom = nextHeading.top + scrollY`（无下一个则 `Infinity`）
+  - 与视口 `[scrollY, scrollY + innerHeight]` 区间相交即视为可见
+  - 仅当可见集合发生变化时写回（原子内做等价性检查）
+- 连续高亮条
+  - `height = sum(可见 TOC 项的 offsetHeight)`
+  - `top = sum(所有在第一可见项之前的 TOC 项的 offsetHeight)`
+  - framer-motion：`easeInOut` + ~0.22s，避免闪烁并保持平滑
+
+## SSR/CSR 边界
+
+- MDX 内容保持 SSR（`mdx-content.tsx` 纯服务端）
+- TOC 相关（注册、滚动监听、动效）在客户端组件 `toc-view.tsx` 内执行
+- 不依赖 MDX 客户端 Heading 包装，从而避免“为目录强制全量客户端渲染”的问题
+
+## 性能策略
+
+- rAF 节流滚动计算，`addEventListener('scroll', { passive: true })`
+- Jotai 写入做等价性检查：无变化不 set，避免渲染风暴
+- DOM 扫描仅按 `sections` 的 `id` 精准查找，减少不必要查询
+- 右栏独立滚动容器，减少整页回流
+
+## 可配置项（微调位点）
+
+- 右栏宽度：`page.tsx` 中 grid 列宽（默认 280px）
+- 粘顶偏移：`sticky top-24`（≈ 6rem），按导航高度调整
+- 动画：`duration`/`ease`（`toc-view.tsx` 内 framer-motion）
+- 颜色：高亮条与文本色（Tailwind 类，可改为项目主题变量）
+- 最大深度：可在扁平化后按 `depth` 过滤
+- 缩进策略：`margin-left = (depth - minDepth) * step`，`step` 可从 12 调整
+
+## 可优化点（建议）
+
+- IntersectionObserver 替代滚动计算（性能更优）
+  - 用 IO 观察每个 heading 的可见性，统一更新集合（注意根 margin 实现顶部偏移）
+- 顶部偏移统一化
+  - 在 heading 上设置 `scroll-margin-top`（CSS 级偏移）或自定义滚动逻辑，确保粘性头部不遮挡
+- 高亮条性能优化
+  - 缓存 TOC 项高度，内容不变时避免每次 reduce 触发强制布局；在窗口 resize 或 TOC 项尺寸变化时再刷新测量
+- a11y 与键盘导航
+  - 为激活项加 `aria-current="true"`，滚动后可选将焦点同步到标题
+- 移动端折叠
+  - 在小屏提供“目录开关”，或自动折叠次级标题
+- 目录项搜索 / 快速定位
+  - 长文档可内置关键字过滤
+- 路由切换钩子
+  - 若存在复杂过渡，可在路由完成后刷新一次 heading 注册与测量（当前实现通常已足够）
+
+## 验收清单
+
+- [ ] 文章内容保持 SSR，不引入全量客户端渲染
+- [ ] 右侧目录在 ≥lg 固定显示，滚动时高亮条跟随
+- [ ] 点击目录项平滑滚动并更新 hash
+- [ ] 切换文章（前进/后退）后目录与高亮正常
+- [ ] 长目录时容器可滚动，短目录不抖动
+- [ ] a11y 基线：链接可聚焦，视觉状态明显
+
+## 下一步（可选）
+
+- 切换到 IntersectionObserver（保留 rAF 作为 fallback）
+- 提炼配置：偏移、动画、色彩、缩进步长为集中配置或 Theme Token
+- 为 TOC 增加单测（扁平化/可见性/激活项），以及 E2E 用例
+
+如需我直接落地某个“可优化点”，告诉我偏好与参数，我会提交改动。

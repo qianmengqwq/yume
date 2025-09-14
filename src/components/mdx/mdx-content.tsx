@@ -1,7 +1,7 @@
 import * as runtime from 'react/jsx-runtime'
 
 const sharedComponents = {
-  // Add your global components here
+  // 可在此注入纯服务端安全的组件（非必须）
 }
 
 // parse the Velite generated MDX code into a React component function
@@ -19,5 +19,9 @@ interface MDXProps {
 // MDXContent component
 export function MDXContent({ code, components }: MDXProps) {
   const Component = useMDXComponent(code)
-  return <Component className="prose lg:prose-xl" components={{ ...sharedComponents, ...components }} />
+  return (
+    <article className="prose dark:prose-invert max-w-none">
+      <Component components={{ ...sharedComponents, ...components }} />
+    </article>
+  )
 }

@@ -5,7 +5,7 @@ export function getIdFromUrl(url: string) {
   return url.startsWith('#') ? url.slice(1) : url
 }
 
-export function flatten(entries: TocEntry[], depth = 0, acc: TocFlatItem[] = []) {
+export function flatten(entries: TocEntry, depth = 0, acc: TocFlatItem[] = []) {
   for (const entry of entries) {
     const id = getIdFromUrl(entry.url)
     acc.push({ id, title: entry.title, depth })

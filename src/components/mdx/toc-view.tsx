@@ -62,16 +62,16 @@ export function TocView({ flat, minDepth }: TocViewProps) {
     <aside className="relative mt-4 text-sm">
       <div className="mb-4 font-semibold">目录</div>
       <div className="relative pl-3">
-        <div className="absolute left-0 top-0 bottom-0 w-[1.5px] bg-separator" />
+        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-separator" />
         <motion.div
-          className="absolute left-0 w-[1.5px] bg-accent"
+          className="absolute left-0 w-[2px] bg-accent"
           layout
           initial={false}
           animate={{
             opacity: height ? 1 : 0,
             height,
             top,
-            transition: { duration: 0.22, ease: 'easeInOut' },
+            transition: { duration: 0.3, ease: 'easeInOut' },
           }}
         />
         <ul className="m-0 list-none pl-4">

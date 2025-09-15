@@ -1,29 +1,29 @@
-import type { Post } from '#site/content'
-import { posts } from '#site/content'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import ModeToggle from '@/components/common/mode-toggle'
 import { MDXContent } from '@/components/mdx/mdx-content'
 import { TocView } from '@/components/mdx/toc-view'
+import { getAllPostSlugs, getPostBySlug } from '@/data/post'
 import { NormalContainer } from '@/layout/container/normal'
-import { flatten, getMinDepth } from '@/types/toc/transform'
-
-function getBySlug(slug: string): Post | undefined {
-  return posts.find(p => (p.slug.split('/').pop() || p.slug) === slug)
-}
+import { getMinDepth } from '@/types/toc/transform'
 
 export function generateStaticParams() {
-  return posts.map(p => ({ slug: p.slug.split('/').pop() || p.slug }))
+  return getAllPostSlugs().map(slug => ({ slug }))
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+interface BlogPostProps {
+  params: Promise<{ slug: string }>
+}
+export default async function BlogPostPage({ params }: BlogPostProps) {
   const { slug } = await params
-  const post = getBySlug(slug)
+  if (!slug)
+    return notFound()
+  const post = getPostBySlug(slug)
+
   if (!post)
     return notFound()
 
-  const flat = flatten(post.tocEntry || [])
-  const minDepth = getMinDepth(flat)
+  const minDepth = getMinDepth(post.tocFlatten)
 
   return (
     <NormalContainer>
@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-8">
         <MDXContent code={post.code} />
         <div className="hidden lg:block sticky top-24 self-start max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
-          <TocView flat={flat} minDepth={minDepth} />
+          <TocView flat={post.tocFlatten} minDepth={minDepth} />
         </div>
       </div>
     </NormalContainer>

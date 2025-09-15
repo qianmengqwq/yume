@@ -1,9 +1,10 @@
-export interface TocEntry {
+export interface TocItem {
   title: string
   url: string
-  items: TocEntry[]
+  items: TocItem[]
 }
 
+export type TocEntry = TocItem[]
 export interface TocFlatItem {
   id: string
   title: string

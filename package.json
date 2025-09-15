@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@pastel-palette/tailwindcss": "1.0.0-canary.1",
@@ -33,24 +35,36 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.2.2",
+    "@chromatic-com/storybook": "^4.1.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@egoist/tailwindcss-icons": "^1.9.0",
     "@iconify-json/mingcute": "^1.2.5",
     "@next/eslint-plugin-next": "^15",
+    "@storybook/addon-a11y": "^9.1.6",
+    "@storybook/addon-docs": "^9.1.6",
+    "@storybook/addon-onboarding": "^9.1.6",
+    "@storybook/addon-vitest": "^9.1.6",
+    "@storybook/nextjs-vite": "^9.1.6",
     "@tailwindcss/postcss": "^4.1.13",
     "@tailwindcss/typography": "^0.5.16",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
+    "@vitest/browser": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.35.0",
+    "eslint-plugin-storybook": "^9.1.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6",
+    "playwright": "^1.55.0",
+    "storybook": "^9.1.6",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.1.13",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.2",
-    "velite": "^0.3.0"
+    "velite": "^0.3.0",
+    "vitest": "^3.2.4"
   }
 }

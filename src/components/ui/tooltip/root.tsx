@@ -1,9 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useId } from 'react'
-import { cn } from '@/lib/utils'
-import { TooltipProvider } from './context'
+import { PopoverRoot } from '@/components/primitive/popover/root'
 
 export interface TooltipRootProps {
   children: ReactNode
@@ -11,13 +9,9 @@ export interface TooltipRootProps {
 }
 
 export function TooltipRoot({ children, className }: TooltipRootProps) {
-  const id = useId()
-  const anchorName = `--tooltip-${id}`
   return (
-    <TooltipProvider value={{ anchorName }}>
-      <div className={cn('group grid justify-center', className)}>
-        {children}
-      </div>
-    </TooltipProvider>
+    <PopoverRoot className={className} mode="hover">
+      {children}
+    </PopoverRoot>
   )
 }

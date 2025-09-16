@@ -1,8 +1,7 @@
 'use client'
 
-import type { CSSProperties, ReactNode } from 'react'
-import { cn } from '@/lib/utils'
-import { useTooltipContext } from './context'
+import type { ReactNode } from 'react'
+import { PopoverTrigger } from '@/components/primitive/popover/trigger'
 
 export interface TooltipTriggerProps {
   children: ReactNode
@@ -10,18 +9,9 @@ export interface TooltipTriggerProps {
 }
 
 export function TooltipTrigger({ children, className }: TooltipTriggerProps) {
-  const { anchorName } = useTooltipContext()
-
-  const style = {
-    'anchor-name': anchorName,
-  } as CSSProperties
-
   return (
-    <span
-      className={cn('inline-block', className)}
-      style={style}
-    >
+    <PopoverTrigger as="span" className={className}>
       {children}
-    </span>
+    </PopoverTrigger>
   )
 }

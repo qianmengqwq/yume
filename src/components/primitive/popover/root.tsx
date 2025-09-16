@@ -10,9 +10,10 @@ export interface PopoverRootProps {
   className?: string
   mode?: 'hover' | 'toggle'
   hoverCloseDelay?: number
+  asChild?: boolean
 }
 
-export function PopoverRoot({ children, className, mode = 'hover', hoverCloseDelay = 120 }: PopoverRootProps) {
+export function PopoverRoot({ children, className, mode = 'hover', hoverCloseDelay = 200, asChild }: PopoverRootProps) {
   const [contentId, setContentId] = useState<string>()
   const [hoverOpen, setHoverOpen] = useState(false)
   const closeTimerRef = useRef<number | undefined>(undefined)
@@ -47,6 +48,15 @@ export function PopoverRoot({ children, className, mode = 'hover', hoverCloseDel
     () => ({ anchorName, contentId, setContentId, mode, hoverOpen, setHoverOpen, onHoverEnter, onHoverLeave, hoverCloseDelay }),
     [anchorName, contentId, mode, hoverOpen, hoverCloseDelay],
   )
+
+  if (asChild) {
+    return (
+      <PopoverProvider value={context}>
+        {children}
+      </PopoverProvider>
+    )
+  }
+
   return (
     <PopoverProvider value={context}>
       <div

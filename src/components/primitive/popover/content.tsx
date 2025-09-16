@@ -33,10 +33,10 @@ export function PopoverContent({ children, className, placement = 'bottom', anch
   const style = {
     // ...positionStyles,
     // 'max-height': 'calc(anchor-size(height) * 2)',
-    'position-area': area,
-    'position-anchor': anchorName,
-    'position-try-fallbacks': 'flip-block,flip-inline,flip-block flip-inline',
-    'position-visibility': anchorsVisible ?? 'anchors-visible',
+    positionArea: area,
+    positionAnchor: anchorName,
+    positionTryFallbacks: 'flip-block,flip-inline,flip-block flip-inline',
+    positionVisibility: anchorsVisible ?? 'anchors-visible',
     transform,
   } as CSSProperties
 
@@ -45,7 +45,6 @@ export function PopoverContent({ children, className, placement = 'bottom', anch
       id={contentId}
       className={cn(
         'absolute',
-        'bg-black text-white rounded-lg',
         mode === 'hover' && 'transition-opacity',
         mode === 'hover' && duration && `duration-${duration}`,
         mode === 'hover' && (hoverOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'),

@@ -8,11 +8,12 @@ export interface DropdownRootProps {
   children: ReactNode
   className?: string
   mode?: 'hover' | 'toggle'
+  asChild?: boolean
 }
 
-export function DropdownRoot({ children, className, mode = 'toggle' }: DropdownRootProps) {
+export function DropdownRoot({ children, className, mode = 'toggle', asChild }: DropdownRootProps) {
   return (
-    <PopoverRoot className={cn('inline-block relative', className)} mode={mode}>
+    <PopoverRoot className={cn('inline-block relative', className)} mode={mode} asChild={asChild}>
       {children}
     </PopoverRoot>
   )

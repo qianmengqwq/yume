@@ -24,10 +24,10 @@ export default function Home() {
           {/* Toggle mode */}
           <div className="flex flex-col items-center gap-3">
             <span className="text-sm text-neutral-500">mode = "toggle"</span>
-            <Dropdown.Root mode="toggle">
-              <Dropdown.Trigger className="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+            <Dropdown.Root mode="toggle" asChild>
+              <Dropdown.Trigger className="px-4 py-2 rounded border border-border">
                 Open menu
-                <span aria-hidden>▾</span>
+                <span aria-hidden className="">▾</span>
               </Dropdown.Trigger>
               <Dropdown.Content className="mt-1" placement="bottom-left" sameWidth>
                 <Dropdown.Item>Profile</Dropdown.Item>
@@ -40,7 +40,7 @@ export default function Home() {
           {/* Hover mode */}
           <div className="flex flex-col items-center gap-3">
             <span className="text-sm text-neutral-500">mode = "hover"</span>
-            <Dropdown.Root mode="hover">
+            <Dropdown.Root mode="toggle">
               <Dropdown.Trigger className="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
                 Hover menu
                 <span aria-hidden>▾</span>
@@ -48,21 +48,16 @@ export default function Home() {
               <Dropdown.Content className="mt-1" placement="bottom-left" sameWidth>
                 <Dropdown.Item>New file</Dropdown.Item>
                 <Dropdown.Item>Duplicate</Dropdown.Item>
-                {/* Nested submenu (hover) */}
-
-                <Dropdown.Root mode="hover" className="relative w-full">
-                  <Dropdown.Trigger
-                    className="w-full select-none rounded-sm px-2 py-1.5 text-left text-sm outline-none transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 inline-flex items-center justify-between"
-                  >
-                    More actions
-                    <span aria-hidden>›</span>
-                  </Dropdown.Trigger>
-                  <Dropdown.Content placement="right-top" className="ml-1" style={{ minWidth: '10rem' }}>
+                <Dropdown.SubRoot>
+                  <Dropdown.SubTrigger>
+                    <span>more</span>
+                  </Dropdown.SubTrigger>
+                  <Dropdown.Content placement="right-top" sameWidth>
                     <Dropdown.Item>Rename</Dropdown.Item>
                     <Dropdown.Item>Archive</Dropdown.Item>
                     <Dropdown.Item>Delete</Dropdown.Item>
                   </Dropdown.Content>
-                </Dropdown.Root>
+                </Dropdown.SubRoot>
               </Dropdown.Content>
             </Dropdown.Root>
           </div>

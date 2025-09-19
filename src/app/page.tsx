@@ -1,9 +1,10 @@
+import { Test } from '@/components/common/test'
 import { Dropdown } from '@/components/ui/dropdown'
 import { Tooltip } from '@/components/ui/tooltip'
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-12 py-12">
+    <div className="flex flex-col items-center justify-center h-[300vh] gap-12 py-12">
       {/* Tooltip demo */}
       <div className="flex flex-col items-center gap-4">
         <h2 className="text-xl font-medium">Tooltip (hover)</h2>
@@ -63,6 +64,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <Test />
     </div>
   )
 }

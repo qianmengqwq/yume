@@ -1,4 +1,3 @@
-// src/components/primitive/popover/trigger.tsx
 'use client'
 
 import type { CSSProperties, HTMLAttributes, ReactElement, ReactNode, SyntheticEvent } from 'react'
@@ -80,9 +79,9 @@ export function PopoverTrigger({
     return cloneElement(child, mergedProps)
   }
 
-  const Comp = as
+  const As = as
   return (
-    <Comp
+    <As
       className={cn('inline-block select-none', className)}
       style={style}
       popoverTarget={mode === 'toggle' ? contentId : undefined}
@@ -94,6 +93,6 @@ export function PopoverTrigger({
       {...rest}
     >
       {children}
-    </Comp>
+    </As>
   )
 }

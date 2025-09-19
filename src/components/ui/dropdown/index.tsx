@@ -13,5 +13,4 @@ export const Dropdown = {
   SubRoot: DropdownSubRoot,
   SubContent: DropdownContent,
   SubTrigger: DropdownSubTrigger,
-
 }

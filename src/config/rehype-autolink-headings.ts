@@ -13,7 +13,6 @@ export const rehypeAutolinkHeadingsOptions: Options = {
       'opacity-0 group-hover:opacity-100 text-gray2',
     ],
     ariaLabel: 'Link to section',
-    ariaHidden: true,
     // 作为装饰性链接：不进 tab 序列
     tabIndex: -1,
   },

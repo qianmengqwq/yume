@@ -1,0 +1,77 @@
+---
+title: 组件方案建设
+slug: component-architecture
+createdAt: "2025-09-21"
+tags: ["UI","Primitives","Headless"]
+---
+
+## 背景
+
+这个项目的 UI 体系不追求“开箱即用”，而是更像一套面向自己团队的构建规范：
+
+- 借鉴 Radix UI 的 **原语 (Primitive)** 思路，拆分出最小职责的组件。
+- 组件保持 **Headless**，只提供行为和结构，样式由调用方掌控。
+- 更偏好最新的浏览器能力，利用原生 API 替代额外的 polyfill 与状态同步。
+
+## 设计原则
+
+1. **状态只保留一份**：所有复合组件都由 `Root` 管理状态，其余节点通过 Context 订阅。例如 `DialogRoot` 提供 `open / setOpen / labelId` 等上下文，`DialogContent`、`DialogClose` 仅消费。
+2. **行为原语 > DOM 包装**：优先使用 `<dialog>`、CSS Anchor、`requestAnimationFrame` 等原生特性，把 React 角色缩小到绑定事件和衔接状态。
+3. **定制优先**：所有可视元素都接受 `asChild` 或 `className`，允许调用者无缝换成自己的标签、样式系统。
+4. **不做兼容性负担**：仅支持现代浏览器，省去 polyfill 与复杂判断，把性能预算投入在交互体验上。
+
+## 原语层 (Primitives)
+
+### Dialog
+
+- `DialogRoot` 负责受控 / 非受控状态，提供 `closeOnEscape`、`closeOnOutsideClick` 等策略开关。
+- `DialogContent` 直接操作原生 `<dialog>`：
+  - 使用 `showModal()` / `show()` 与 `close()` 同步 `open` 状态。
+  - 只监听一次 `cancel` 事件，在 `closeOnEscape = false` 时 `preventDefault()` 并在下一帧调用 `showModal()` 恢复模态，避免额外的 `keydown` 兜底。
+  - 通过 `useClickOutside`（包装成 `useClickOutside(dialogRef, handler)`）处理点击遮罩关闭，和外部 `onClick` 合并为一个回调。
+- `DialogTrigger`、`DialogClose` 只关心“触发开关状态”这件事，视觉表现完全交给调用者。
+- `Portal` 原语提供挂载容器，必要时把内容送到布局外层。
+
+### Popover
+
+- `PopoverRoot` 用 `CSS anchor` 名称 (`--popover-${id}`) 记录锚点，hover 模式下用 `setTimeout` 控制延迟关闭。
+- 触发器与内容层同样支持 `asChild`，可以绑定到任意元素、支持无障碍属性透传。
+
+## Headless 的实现方式
+
+### withAsChild
+
+`DialogTrigger` / `DialogClose` / `PopoverTrigger` 等都通过 `withAsChild()` 包装：
+
+```tsx
+export const DialogClose = withAsChild(DialogCloseBase, {
+  handlerProps: ['onClick'],
+})
+```
+
+- 如果 `asChild` 为 `false`，就渲染 `DialogCloseBase` 自己的 `<button>`。
+- 若传入 `asChild`，则将子元素克隆一次，把 `onClick`、`className` 以及 `ref` 合并进去，并遵循 “先执行子元素事件，再判断 `event.defaultPrevented` 决定是否继续” 的约定。
+- 这样可以把“换标签 + 接管样式”变成零额外成本的操作。
+
+### 通用工具
+
+- `useClickOutside`：基于 `event.clientX/Y` 与 `getBoundingClientRect` 判断是否点在内容外，避免在每个组件里重复写逻辑。
+- `Portal`：集中管理根节点，SSR 下直接返回 `null`，客户端才执行 `createPortal`。
+
+## 使用策略
+
+1. **先挑原语**：按照交互行为拆分（如 Dialog、Popover、Dropdown）。
+2. **再组合 UI 组件**：例如 `src/components/ui/dropdown` 会把 Dialog/Popover 等原语封装成项目常用形态，同时继续暴露 `className` / `asChild`。
+3. **拥抱最新 API**：
+   - `<dialog>` 负责模态体验，避免人为管理焦点锁定。
+   - CSS Anchor 让浮层定位更稳定，减少计算布局。
+   - 通过 `requestAnimationFrame` 控制节奏，避免布局抖动。
+4. **样式保持轻量**：原语层不写视觉，只在 UI 层提供默认 Tailwind 类，用户可以完整覆盖。
+
+## 未来拓展
+
+- 继续关注浏览器对 `Popover API`、`View Transitions`、`:has()` 等特性支持，把复杂交互交还给原生。
+- 为常用原语补充 Story / 测试场景，确保 headless 特性在各种组合下行为一致。
+- 提炼更多通用 hook（例如焦点管理、键盘导航），进一步减少组件内部样板代码。
+
+随着这些原则落地，组件库更像是一套“约定 + 工具箱”，让真正的界面实现保持灵活，同时享受原生 API 带来的性能与一致性。

@@ -51,7 +51,14 @@ export default function Home() {
                 <Dropdown.Item>Duplicate</Dropdown.Item>
                 <Dropdown.SubRoot>
                   <Dropdown.SubTrigger>
-                    <span>more</span>
+                    <span>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger>more</Tooltip.Trigger>
+                        <Tooltip.Content className="p-2 rounded" placement="top" offset={{ y: -8 }}>
+                          This is a tooltip!
+                        </Tooltip.Content>
+                      </Tooltip.Root>
+                    </span>
                   </Dropdown.SubTrigger>
                   <Dropdown.Content placement="right-top" sameWidth>
                     <Dropdown.Item>Rename</Dropdown.Item>

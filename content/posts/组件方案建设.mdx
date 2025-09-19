@@ -58,6 +58,28 @@ export const DialogClose = withAsChild(DialogCloseBase, {
 - `useClickOutside`：基于 `event.clientX/Y` 与 `getBoundingClientRect` 判断是否点在内容外，避免在每个组件里重复写逻辑。
 - `Portal`：集中管理根节点，SSR 下直接返回 `null`，客户端才执行 `createPortal`。
 
+### createComponentContext
+
+Radix UI 的 `createContextScope` 给了我很大启发，但我并不需要那么复杂的 scope 机制，于是抽了一个最小的 `createComponentContext`：
+
+```ts
+const [DropdownContextProvider, useDropdownContext] = createComponentContext<PopoverContextType>({
+  name: 'Dropdown',
+  errorMessage: 'Dropdown 组件必须在 <Dropdown.Root> 内部使用',
+})
+
+function DropdownProvider({ children }: { children: ReactNode }) {
+  const popover = usePopoverContext()
+  return <DropdownContextProvider value={popover}>{children}</DropdownContextProvider>
+}
+```
+
+组件层不再直接复用原语的 Provider，而是“桥接”一层自己的 Provider：
+
+- **保持解耦**：UI 层永远依赖 `useDropdownContext`，哪怕将底层从 `Popover` 换成别的实现，也只要改这个桥接层。
+- **可以扩展**：如果 UI 组件需要新增状态（例如选中项、过滤条件），只需要在 Provider 的 value 上合并即可。
+- **错误提示更友好**：`createComponentContext` 会统一抛出带组件名的错误，帮助在开发期定位“漏掉 Root/Provider” 的问题。
+
 ## 使用策略
 
 1. **先挑原语**：按照交互行为拆分（如 Dialog、Popover、Dropdown）。

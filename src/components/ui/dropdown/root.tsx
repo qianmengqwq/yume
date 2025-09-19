@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { PopoverRoot } from '@/components/primitive/popover/root'
 import { cn } from '@/lib/utils'
+import { DropdownProvider } from './context'
 
 export interface DropdownRootProps {
   children: ReactNode
@@ -14,7 +15,7 @@ export interface DropdownRootProps {
 export function DropdownRoot({ children, className, mode = 'toggle', asChild }: DropdownRootProps) {
   return (
     <PopoverRoot className={cn('inline-block relative', className)} mode={mode} asChild={asChild}>
-      {children}
+      <DropdownProvider>{children}</DropdownProvider>
     </PopoverRoot>
   )
 }

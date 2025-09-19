@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { PopoverRoot } from '@/components/primitive/popover/root'
+import { TooltipProvider } from './context'
 
 export interface TooltipRootProps {
   children: ReactNode
@@ -11,7 +12,7 @@ export interface TooltipRootProps {
 export function TooltipRoot({ children, className }: TooltipRootProps) {
   return (
     <PopoverRoot className={className} mode="hover">
-      {children}
+      <TooltipProvider>{children}</TooltipProvider>
     </PopoverRoot>
   )
 }

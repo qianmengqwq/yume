@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react'
 
-interface PopoverContextType {
+export interface PopoverContextType {
   anchorName: string
   contentId: string | undefined
   setContentId: (id: string) => void

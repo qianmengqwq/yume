@@ -7,7 +7,6 @@ interface DialogRootProps {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
-  modal?: boolean
   closeOnEscape?: boolean
   closeOnOutsideClick?: boolean
 }
@@ -17,7 +16,6 @@ export function DialogRoot({
   open: openProp,
   defaultOpen,
   onOpenChange,
-  modal = true,
   closeOnEscape = true,
   closeOnOutsideClick = true,
 }: DialogRootProps) {
@@ -42,11 +40,10 @@ export function DialogRoot({
       descriptionId,
       setLabelId,
       setDescriptionId,
-      modal,
       closeOnEscape,
       closeOnOutsideClick,
     }),
-    [open, setOpen, labelId, descriptionId, modal, closeOnEscape, closeOnOutsideClick],
+    [open, setOpen, labelId, descriptionId, closeOnEscape, closeOnOutsideClick],
   )
 
   return <DialogProvider value={value}>{children}</DialogProvider>

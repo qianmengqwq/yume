@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@pastel-palette/tailwindcss": "1.0.0-canary.1",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@shikijs/rehype": "^3.12.2",
     "@shikijs/transformers": "^3.12.2",
     "clsx": "^2.1.1",

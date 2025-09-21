@@ -1,16 +1,17 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
+import { withAsChild } from '@/components/hoc/as-child'
 import { useClickOutside } from '@/hooks/common/use-click-outside'
 import { useDialogContext } from './context'
 
-interface ContentProps extends HTMLAttributes<HTMLDialogElement> {
+interface ContentBaseProps extends HTMLAttributes<HTMLDialogElement> {
   children?: ReactNode
   dialogRef?: React.RefObject<HTMLDialogElement>
   className?: string
 }
 
-export function DialogContent({ children, dialogRef: dialogRefProp, onClick, className, ...rest }: ContentProps) {
-  const { open, setOpen, labelId, descriptionId, modal, closeOnEscape, closeOnOutsideClick } = useDialogContext()
+function DialogContentBase({ children, dialogRef: dialogRefProp, onClick, className, ...rest }: ContentBaseProps) {
+  const { open, setOpen, labelId, descriptionId, closeOnEscape, closeOnOutsideClick } = useDialogContext()
   const innerRef = useRef<HTMLDialogElement>(null)
   const dialogRef = dialogRefProp ?? innerRef
 
@@ -19,19 +20,14 @@ export function DialogContent({ children, dialogRef: dialogRefProp, onClick, cla
     if (!el)
       return
 
-    if (open) {
-      if (!el.open) {
-        if (modal)
-          el.showModal()
-        else
-          el.show()
-      }
+    if (open && !el.open) {
+      el.showModal()
     }
     else {
       if (el.open)
         el.close()
     }
-  }, [open, modal, dialogRef])
+  }, [open, dialogRef])
 
   useEffect(() => {
     const el = dialogRef.current
@@ -39,8 +35,6 @@ export function DialogContent({ children, dialogRef: dialogRefProp, onClick, cla
       return
 
     const restoreModal = () => {
-      if (!modal)
-        return
       requestAnimationFrame(() => {
         const dialogEl = dialogRef.current
         if (!dialogEl || !open)
@@ -63,7 +57,7 @@ export function DialogContent({ children, dialogRef: dialogRefProp, onClick, cla
 
     el.addEventListener('cancel', onCancel)
     return () => el.removeEventListener('cancel', onCancel)
-  }, [dialogRef, closeOnEscape, modal, open, setOpen])
+  }, [dialogRef, closeOnEscape, open, setOpen])
 
   const handleClick = useClickOutside(
     dialogRef,
@@ -81,10 +75,16 @@ export function DialogContent({ children, dialogRef: dialogRefProp, onClick, cla
       className={className}
       aria-labelledby={labelId}
       aria-describedby={descriptionId}
-      role={modal ? 'modal' : 'dialog'}
+      role="modal"
       onClick={handleClick}
     >
       {children}
     </dialog>
   )
 }
+
+export const DialogContent = withAsChild<ContentBaseProps>(DialogContentBase, {
+  handlerProps: ['onClick'],
+})
+
+export type DialogContentProps = Parameters<typeof DialogContent>[0]

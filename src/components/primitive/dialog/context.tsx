@@ -9,7 +9,6 @@ interface DialogContextValue {
   descriptionId: string | undefined
   setLabelId: (id: string | undefined) => void
   setDescriptionId: (id: string | undefined) => void
-  modal: boolean
   closeOnEscape: boolean
   closeOnOutsideClick: boolean
 }

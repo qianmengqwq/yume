@@ -1,3 +1,4 @@
+import { ModalDemo } from '@/components/common/modal-demo'
 import { Test } from '@/components/common/test'
 import { Dropdown } from '@/components/ui/dropdown'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -72,6 +73,7 @@ export default function Home() {
         </div>
       </div>
       <Test />
+      <ModalDemo />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { ModalDemo } from '@/components/common/modal-demo'
 import { Test } from '@/components/common/test'
+import { ButtonDemo } from '@/components/ui/button'
 import { Dropdown } from '@/components/ui/dropdown'
 import { Tooltip } from '@/components/ui/tooltip'
 
@@ -74,6 +75,7 @@ export default function Home() {
       </div>
       <Test />
       <ModalDemo />
+      <ButtonDemo />
     </div>
   )
 }

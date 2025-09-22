@@ -35,6 +35,7 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
                   src={post.cover}
                   alt={post.title}
                   fill
+                  priority
                   className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
                 />
               </div>

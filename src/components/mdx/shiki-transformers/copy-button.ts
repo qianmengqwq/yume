@@ -23,9 +23,9 @@ export function transformerCopyButton(
       const baseBtnClass = cn(
         'rehype-shiki-copy',
         // 定位
-        'absolute top-2 right-2 inline-flex items-center justify-center',
+        'absolute -top-1 -right-1',
         // 基础样式
-        'rounded-md px-2 py-1 text-text-tertiary',
+        'rounded-md px-2 py-1 text-text-tertiary cursor-pointer',
         // 交互
         // focus采用 shiki的
         // 复制成功
@@ -36,7 +36,7 @@ export function transformerCopyButton(
           : 'opacity-100',
       )
 
-      node.children.push({
+      node.children.unshift({
         type: 'element',
         tagName: 'button',
         properties: {

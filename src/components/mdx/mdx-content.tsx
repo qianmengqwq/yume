@@ -1,7 +1,6 @@
 import * as runtime from 'react/jsx-runtime'
 
 const sharedComponents = {
-  // 可在此注入纯服务端安全的组件（非必须）
 }
 
 // parse the Velite generated MDX code into a React component function

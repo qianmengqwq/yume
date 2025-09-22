@@ -1,0 +1,16 @@
+.prose :not(pre) > code {
+  background-color: color-mix(in oklab, var(--color-background-secondary) 80%, transparent);
+;
+  border-radius: var(--radius-xl);
+  font-weight: 400;
+  font-family: var(--font-mono);
+  padding: 4px 12px;
+}
+
+code::after {
+  content: "";
+}
+
+code::before {
+  content: "";
+}

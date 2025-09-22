@@ -7,6 +7,7 @@ import { defineConfig, s } from 'velite'
 import { rehypeAutolinkHeadingsOptions } from '@/config/rehype-autolink-headings'
 import { rehypeShikiOption } from '@/config/rehype-shiki'
 import { flatten } from '@/types/toc/transform'
+import { syncAssets } from './src/service/cloudflare-r2'
 
 function computedFields<T extends { tocEntry: TocEntry }>(data: T) {
   return {
@@ -22,6 +23,7 @@ const posts = {
     .object({
       title: s.string().max(99),
       slug: s.slug('post'),
+      description: s.string().max(300),
       createdAt: s.isodate(),
       updatedAt: s.isodate().optional(),
       tags: s.array(s.string()).max(10).default([]),
@@ -44,6 +46,7 @@ const config = {
       [rehypeAutolinkHeadings, rehypeAutolinkHeadingsOptions],
     ],
   },
+  complete: syncAssets,
 } satisfies UserConfig
 
 export default defineConfig(config)

@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google'
+import { Aboreto, Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 
 const sansFont = Inter({
@@ -40,4 +40,11 @@ const serifFont = localFont({
   fallback: ['Noto Serif SC', 'serif'],
 })
 
-export { sansFont, serifFont }
+const aboretoFont = Aboreto({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-aboreto',
+  display: 'swap',
+})
+
+export { aboretoFont, sansFont, serifFont }

@@ -2,11 +2,11 @@ export const siteConfig = {
   name: 'yume',
   url: 'https://sayoriqwq.com',
   description: 'to do, to record',
+  assetsDomain: 'https://r2.sayoriqwq.com',
   author: 'sayoriqwq',
-  avatar: '',
+  avatar: 'https://r2.sayoriqwq.com/blog/avatar.webp',
   links: {
     github: 'https://github.com/qianmengqwq',
-    twitter: 'https://sayoriqwq.site',
     email: 'mailto:2531600563@qq.com',
   },
   rss: '/feed.xml',

@@ -8,3 +8,9 @@
 @import '@pastel-palette/tailwindcss/dist/theme-oklch.css';
 
 @custom-variant dark (&:is(.dark *));
+
+@layer utilities {
+  .font-aboreto {
+    font-family: var(--font-aboreto), cursive;
+  }
+}

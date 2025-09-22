@@ -6,13 +6,11 @@ export function getPostBySlug(slug: string): Post | undefined {
 }
 
 export function getAllPosts(): Post[] {
-  return posts
+  return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 export function getLatestPosts(count = 5): Post[] {
-  return posts
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, count)
+  return getAllPosts().slice(0, count)
 }
 
 export function getAllPostSlugs(): string[] {

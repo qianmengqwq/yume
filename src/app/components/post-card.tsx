@@ -11,7 +11,7 @@ export function PostCard({ post }: PostCardProps) {
   const cover = post.cover || DEFAULT_BLOG_COVER
 
   return (
-    <article className="group flex gap-4 rounded-lg p-4 min-h-32 hover:cursor-pointer">
+    <article className="group flex gap-8 rounded-lg p-4 min-h-32 hover:cursor-pointer">
       <div className="relative aspect-[16/9] overflow-hidden rounded-md h-30 hidden md:block">
         <Image
           src={cover}

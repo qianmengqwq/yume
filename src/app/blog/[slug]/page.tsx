@@ -27,18 +27,21 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
 
   return (
     <NormalContainer>
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <header className="mb-6 flex flex-col gap-4">
+        {post.cover
+          ? (
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg">
+                <Image
+                  src={post.cover}
+                  alt={post.title}
+                  fill
+                  className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                />
+              </div>
+            )
+          : null}
+        <div className="flex justify-between">
           <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
-          {post.cover?.src
-            ? (
-                <div className="relative w-full h-40">
-                  <Image src={post.cover.src} alt={post.title} fill className="object-contain" />
-                </div>
-              )
-            : null}
-        </div>
-        <div className="shrink-0">
           <ModeToggle />
         </div>
       </header>

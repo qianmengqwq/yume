@@ -28,16 +28,27 @@ const posts = {
       updatedAt: s.isodate().optional(),
       tags: s.array(s.string()).max(10).default([]),
       metadata: s.metadata(),
-      cover: s.image().optional(),
+      cover: s.string().optional(),
       code: s.mdx(),
       tocEntry: s.toc(),
     })
     .transform(computedFields),
 } satisfies Collection
 
+const tags = {
+  name: 'Tag',
+  pattern: 'tags/*.json',
+  schema: s.object({
+    title: s.string().max(40),
+    slug: s.slug('tag'),
+    description: s.string().max(160).optional(),
+  }),
+} satisfies Collection
+
 const config = {
   collections: {
     posts,
+    tags,
   },
   mdx: {
     rehypePlugins: [

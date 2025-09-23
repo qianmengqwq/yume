@@ -10,7 +10,8 @@ if (!process.env.VELITE_STARTED && (isDev || isBuild)) {
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [{ hostname: 'r2.sayoriqwq.com' }],
+    // remotePatterns: [{ hostname: 'r2.sayoriqwq.com' }],
+    loaderFile: './src/service/wsrv-loader.ts',
   },
 }
 

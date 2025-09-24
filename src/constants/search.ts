@@ -1,4 +1,4 @@
-export const SEARCH_DEFAULT_RESULT_COUNT = 12
+export const SEARCH_DEFAULT_RESULT_COUNT = 0
 export const SEARCH_MAX_RESULTS = 20
 
 export const SEARCH_FIELD_WEIGHTS = {

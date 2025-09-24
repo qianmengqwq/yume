@@ -307,7 +307,8 @@ export const Modal = memo(
                         <span className="sr-only">Close</span>
                       </Dialog.Close>
                     </div>
-                    <div className="my-2 flex-shrink-0 border-t border-slate-200 dark:border-neutral-800" />
+                    {/* 防止默认铺满倒置的border消失 */}
+                    <div className="my-2 p-1 flex-shrink-0 border-t border-slate-200 dark:border-neutral-800" />
 
                     <div
                       className="min-h-0 flex-shrink flex-grow overflow-auto px-4 py-2"

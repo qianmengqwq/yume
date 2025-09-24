@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import Input from '@/components/ui/input/input'
-import { SEARCH_DEFAULT_RESULT_COUNT, SEARCH_MAX_RESULTS } from '@/constants/search'
+import { SEARCH_MAX_RESULTS } from '@/constants/search'
 import { getPostIndex } from '@/data'
 import { SearchPostCard } from './search-post-card'
 import { calculateEntryScore, tokenizeQuery } from './search-score'
@@ -18,7 +18,7 @@ const SEARCH_INDEX = getPostIndex()
 function searchEntries(query: string): SearchIndexEntry[] {
   const tokens = tokenizeQuery(query)
   if (tokens.length === 0)
-    return SEARCH_INDEX.slice(0, SEARCH_DEFAULT_RESULT_COUNT)
+    return []
 
   const scored: Array<{ entry: SearchIndexEntry, score: number }> = []
 
@@ -92,9 +92,9 @@ export function SearchModal({ dismiss }: ModalContentPropsInternal) {
         </label>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pr-2">
         {hasResults && (
-          <ul className="space-y-2">
+          <ul className="space-y-2 pr-1">
             {results.map((entry, index) => (
               <li key={entry.slug}>
                 <SearchPostCard
@@ -112,7 +112,7 @@ export function SearchModal({ dismiss }: ModalContentPropsInternal) {
           </ul>
         )}
 
-        {!hasResults && (
+        { query && !hasResults && (
           <div className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border py-12 text-center">
             <span aria-hidden className="i-mingcute-empty-box-line size-12 text-text-tertiary" />
             <p className="text-sm text-text-tertiary">没有找到匹配结果，试试换个关键词？</p>

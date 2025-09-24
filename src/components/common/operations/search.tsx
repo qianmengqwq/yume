@@ -13,7 +13,8 @@ export function Search() {
       id: 'global-search',
       title: '站内搜索',
       content: SearchModal,
-      overlay: true,
+      modalClassName: 'w-[60vw] h-[50vh]',
+      clickOutsideToDismiss: true,
     })
   }, [present])
 

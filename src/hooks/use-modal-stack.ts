@@ -1,7 +1,6 @@
 'use client'
 
-import type { ModalProps, ModalStackOptions } from '@/types/ui/modal'
-
+import type { ModalProps, ModalStackOptions } from '@/components/ui/modal/types'
 import { useCallback, useId, useRef } from 'react'
 import { useSetModalStack } from '@/providers/modal-provider'
 

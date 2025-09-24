@@ -66,7 +66,8 @@ export async function generateSearchIndex() {
   await mkdir(outputDir, { recursive: true })
   await writeFile(filePath, JSON.stringify(entries, null, 2))
 
-  const typeDefinition = `export interface SearchIndexEntry {
+  const typeDefinition = `
+  export interface SearchIndexEntry {
   slug: string
   href: string
   title: string

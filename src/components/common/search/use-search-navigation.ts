@@ -16,6 +16,9 @@ export function useSearchNavigation({ results, onSelect }: UseSearchNavigationOp
   }, [results])
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent?.isComposing)
+      return
+
     if (!results.length)
       return
 

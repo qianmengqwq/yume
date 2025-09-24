@@ -8,6 +8,7 @@ import { rehypeAutolinkHeadingsOptions } from '@/config/rehype-autolink-headings
 import { rehypeShikiOption } from '@/config/rehype-shiki'
 import { flatten } from '@/types/toc/transform'
 import { syncAssets } from './src/service/cloudflare-r2'
+import { generateSearchIndex } from './src/service/generate-search-index'
 
 function computedFields<T extends { tocEntry: TocEntry }>(data: T) {
   return {
@@ -57,7 +58,10 @@ const config = {
       [rehypeAutolinkHeadings, rehypeAutolinkHeadingsOptions],
     ],
   },
-  complete: syncAssets,
+  complete: async () => {
+    await generateSearchIndex()
+    await syncAssets()
+  },
 } satisfies UserConfig
 
 export default defineConfig(config)

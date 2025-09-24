@@ -7,12 +7,12 @@ export function Navs() {
   ]
 
   return (
-    <nav className="flex gap-4">
+    <>
       {navItems.map(item => (
         <Link key={item.href} href={item.href} className=" hover:text-secondary transition-colors duration-300">
           {item.label}
         </Link>
       ))}
-    </nav>
+    </>
   )
 }

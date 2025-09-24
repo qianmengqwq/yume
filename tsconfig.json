@@ -8,7 +8,9 @@
     "moduleResolution": "bundler",
     "paths": {
       "@/*": ["./src/*"],
-      "#site/content": ["./.velite"]
+      "#site/content": ["./.velite"],
+      "#site/search-index": ["./.velite/search-index"],
+      "#site/search-index.json": ["./.velite/search-index.json"]
     },
     "resolveJsonModule": true,
     "allowJs": true,

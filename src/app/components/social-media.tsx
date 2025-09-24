@@ -2,11 +2,13 @@ import Link from 'next/link'
 import { siteConfig } from '@/config/site'
 
 export function SocialMedia() {
-  const iconBaseStyle = 'size-6  hover:text-accent'
+  const iconBaseStyle = 'size-6 text-text-secondary hover:text-accent'
   const medias = [
     {
       link: siteConfig.links.github,
-      icon: <span className={`i-mingcute-github-line ${iconBaseStyle}`} />,
+      icon: (
+        <span className={`i-mingcute-github-line ${iconBaseStyle}`} />
+      ),
     },
     { link: siteConfig.links.email, icon: <span className={`i-mingcute-mail-line ${iconBaseStyle}`} />,
     },

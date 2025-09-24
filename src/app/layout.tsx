@@ -1,3 +1,6 @@
+import { NormalContainer } from '@/layout/container/normal'
+import { Footer } from '@/layout/footer'
+import { Header } from '@/layout/header'
 import { Hydrations } from '@/providers/hydrations'
 import { Providers } from '@/providers/providers'
 import '../styles/index.css'
@@ -12,7 +15,11 @@ export default function RootLayout({
       <body className="bg-background-kawaii text-text-kawaii antialiased transition-colors duration-300">
         <Hydrations />
         <Providers>
-          {children}
+          <NormalContainer>
+            <Header />
+            {children}
+            <Footer />
+          </NormalContainer>
         </Providers>
       </body>
     </html>

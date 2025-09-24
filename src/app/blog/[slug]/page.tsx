@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import ModeToggle from '@/components/common/mode-toggle'
+import ModeToggle from '@/components/common/operations/mode-toggle'
 import { MDXContent } from '@/components/mdx/mdx-content'
 import { TocView } from '@/components/mdx/toc-view'
 import { getAllPostSlugs, getPostBySlug } from '@/data/post'

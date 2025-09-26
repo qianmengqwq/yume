@@ -7,6 +7,7 @@ import process from 'node:process'
 
 import { DeleteObjectsCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { lookup as lookupMimeType } from 'mime-types'
+import sharp from 'sharp'
 import { siteConfig } from '@/config/site'
 
 export interface CloudflareR2Config {
@@ -34,8 +35,45 @@ interface FileDescriptor {
   lastModified: Date
 }
 
+interface UploadDescriptor extends FileDescriptor {
+  targetKey: string
+  contentType: string
+  convertToWebp: boolean
+  legacyKey?: string
+}
+
 const DEFAULT_REGION = 'auto'
 const MAX_DELETE_BATCH = 1000
+const WEBP_MIME_TYPE = 'image/webp'
+const CONVERTIBLE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/tiff',
+  'image/bmp',
+  'image/avif',
+])
+const MANAGED_IMAGE_EXTENSIONS = ['.webp', '.png', '.jpg', '.jpeg', '.svg', '.gif', '.bmp', '.tiff', '.avif']
+
+function replaceExtensionWithWebp(key: string) {
+  const lastDot = key.lastIndexOf('.')
+  if (lastDot === -1) {
+    return `${key}.webp`
+  }
+  return `${key.slice(0, lastDot)}.webp`
+}
+
+function shouldConvertToWebp(mimeType: string) {
+  if (mimeType === WEBP_MIME_TYPE) {
+    return false
+  }
+  return CONVERTIBLE_MIME_TYPES.has(mimeType)
+}
+
+function isManagedImageKey(key: string) {
+  const lowerKey = key.toLowerCase()
+  return MANAGED_IMAGE_EXTENSIONS.some(ext => lowerKey.endsWith(ext))
+}
 
 function chunkArray<T>(items: T[], size: number) {
   const result: T[][] = []
@@ -163,24 +201,25 @@ async function deleteRemoteKeys(client: S3Client, bucket: string, keys: string[]
   }
 }
 
-async function uploadFiles(client: S3Client, bucket: string, files: FileDescriptor[], prefix?: string) {
+async function uploadFiles(client: S3Client, bucket: string, files: UploadDescriptor[]) {
   const uploads = files.map(async (file) => {
-    const key = prefix ? posix.join(prefix, file.relativeKey) : file.relativeKey
+    const body = file.convertToWebp
+      ? await sharp(file.absolutePath).webp().toBuffer()
+      : createReadStream(file.absolutePath)
 
-    const contentType = lookupMimeType(file.absolutePath) || undefined
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: key,
-        Body: createReadStream(file.absolutePath),
-        ContentType: typeof contentType === 'string' ? contentType : undefined,
+        Key: file.targetKey,
+        Body: body,
+        ContentType: file.contentType,
       }),
     )
   })
 
   await Promise.all(uploads)
 
-  return files.map(file => (prefix ? posix.join(prefix, file.relativeKey) : file.relativeKey))
+  return files.map(file => file.targetKey)
 }
 
 export async function syncDirectoryToR2(
@@ -193,17 +232,38 @@ export async function syncDirectoryToR2(
   const source = resolve(sourceDir)
 
   const files = await walkDirectory(source)
-  const targetKeys = files.map(file => (options.prefix ? posix.join(options.prefix, file.relativeKey) : file.relativeKey))
-  const expectedKeys = new Set(targetKeys)
+  const uploadDescriptors = files.reduce<UploadDescriptor[]>((acc, file) => {
+    const mimeType = lookupMimeType(file.absolutePath)
+    if (typeof mimeType !== 'string' || !mimeType.startsWith('image/')) {
+      return acc
+    }
+
+    const prefixedKey = options.prefix ? posix.join(options.prefix, file.relativeKey) : file.relativeKey
+    const convertToWebp = shouldConvertToWebp(mimeType)
+    const targetKey = convertToWebp ? replaceExtensionWithWebp(prefixedKey) : prefixedKey
+
+    acc.push({
+      ...file,
+      targetKey,
+      contentType: convertToWebp ? WEBP_MIME_TYPE : mimeType,
+      convertToWebp,
+      legacyKey: convertToWebp && prefixedKey !== targetKey ? prefixedKey : undefined,
+    })
+
+    return acc
+  }, [])
+
+  const expectedKeys = new Set(uploadDescriptors.map(file => file.targetKey))
+  const legacyKeys = new Set(uploadDescriptors.flatMap(file => (file.legacyKey ? [file.legacyKey] : [])))
 
   const remoteKeys = await listRemoteKeys(client, config.bucket, options.prefix)
-  const orphanedKeys = remoteKeys.filter(key => !expectedKeys.has(key))
+  const orphanedKeys = remoteKeys.filter(key => legacyKeys.has(key) || (isManagedImageKey(key) && !expectedKeys.has(key)))
 
   if (options.dryRun) {
-    return { uploaded: targetKeys, deleted: orphanedKeys }
+    return { uploaded: uploadDescriptors.map(file => file.targetKey), deleted: orphanedKeys }
   }
 
-  const uploadedKeys = await uploadFiles(client, config.bucket, files, options.prefix)
+  const uploadedKeys = await uploadFiles(client, config.bucket, uploadDescriptors)
   await deleteRemoteKeys(client, config.bucket, orphanedKeys)
 
   return {

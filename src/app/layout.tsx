@@ -3,6 +3,7 @@ import { Footer } from '@/layout/footer'
 import { Header } from '@/layout/header'
 import { Hydrations } from '@/providers/hydrations'
 import { Providers } from '@/providers/providers'
+import { Overlay } from './components/overlay'
 import '../styles/index.css'
 
 export default function RootLayout({
@@ -15,6 +16,7 @@ export default function RootLayout({
       <body className="bg-background-kawaii text-text-kawaii antialiased transition-colors duration-300">
         <Hydrations />
         <Providers>
+          <Overlay />
           <NormalContainer>
             <Header />
             {children}
